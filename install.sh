@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# dev-sandbox — macOS 本地开发沙箱一键安装（可拓展的基础环境）
+# sandbox-infra — macOS 本地开发沙箱一键安装（可拓展的基础环境）
 #
 # 在目标目录生成一套基于 Docker 的开发沙箱：代码 bind mount 留在 Mac，
 # 语言工具链与 AI agent 全部运行在 Linux 容器内。默认 go 栈 + Claude Code。
@@ -17,7 +17,7 @@
 # 示例:
 #   ./install.sh ~/Workspace/myapp
 #   ./install.sh --stack node --with codex,gemini ~/Workspace/webapp
-#   curl -fsSL https://raw.githubusercontent.com/fengmingli/dev-sandbox/main/install.sh | bash -s -- ~/myapp
+#   curl -fsSL https://raw.githubusercontent.com/fengmingli/sandbox-infra/main/install.sh | bash -s -- ~/myapp
 
 set -euo pipefail
 
@@ -213,7 +213,7 @@ COMPOSE
 
 emit "$TARGET/.devcontainer/devcontainer.json" <<'DEVCONTAINER'
 {
-  "name": "dev-sandbox",
+  "name": "sandbox-infra",
   "dockerComposeFile": "../compose.yaml",
   "service": "dev",
   "workspaceFolder": "/workspace",

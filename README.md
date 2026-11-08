@@ -1,4 +1,4 @@
-# dev-sandbox
+# sandbox-infra
 
 macOS 上一键搭建**通用开发沙箱基础环境**：代码留在 Mac（bind mount 挂载），语言工具链与 AI agent 全部运行在 Linux 容器内。装好即用，按需拓展。
 
@@ -32,12 +32,12 @@ macOS 上一键搭建**通用开发沙箱基础环境**：代码留在 Mac（bin
 
 ```bash
 # 方式一（推荐，不依赖 raw.githubusercontent.com）：clone 后运行
-git clone --depth 1 https://github.com/fengmingli/dev-sandbox /tmp/dev-sandbox \
-  && bash /tmp/dev-sandbox/install.sh ~/Workspace/myapp \
-  && rm -rf /tmp/dev-sandbox
+git clone --depth 1 https://github.com/fengmingli/sandbox-infra /tmp/sandbox-infra \
+  && bash /tmp/sandbox-infra/install.sh ~/Workspace/myapp \
+  && rm -rf /tmp/sandbox-infra
 
 # 方式二：海外网络可直接 curl（raw.githubusercontent.com 国内通常不可达）
-curl -fsSL https://raw.githubusercontent.com/fengmingli/dev-sandbox/main/install.sh | bash -s -- ~/Workspace/myapp
+curl -fsSL https://raw.githubusercontent.com/fengmingli/sandbox-infra/main/install.sh | bash -s -- ~/Workspace/myapp
 ```
 
 安装过程：检查并启动 Docker → 生成沙箱配置 → 构建镜像 → 启动 → 自动验证（工具链版本、agent 可用、挂载双向读写）。空目录会附带 hello world 示例，装完即可运行；已有项目只生成沙箱配置，不动你的代码。
