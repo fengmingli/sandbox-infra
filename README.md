@@ -31,12 +31,13 @@ macOS 上一键搭建本地开发沙箱：**代码留在 Mac（bind mount 挂载
 ## 快速开始
 
 ```bash
-# 方式一：curl 直接安装到指定项目（无需 clone 本仓库）
-curl -fsSL https://raw.githubusercontent.com/fengmingli/go-dev-sandbox/main/install.sh | bash -s -- ~/Workspace/myapp
+# 方式一（推荐，不依赖 raw.githubusercontent.com）：clone 后运行
+git clone --depth 1 https://github.com/fengmingli/go-dev-sandbox /tmp/go-dev-sandbox \
+  && bash /tmp/go-dev-sandbox/install.sh ~/Workspace/myapp \
+  && rm -rf /tmp/go-dev-sandbox
 
-# 方式二：clone 后运行
-git clone https://github.com/fengmingli/go-dev-sandbox.git
-./go-dev-sandbox/install.sh ~/Workspace/myapp
+# 方式二：海外网络可直接 curl（raw.githubusercontent.com 国内通常不可达）
+curl -fsSL https://raw.githubusercontent.com/fengmingli/go-dev-sandbox/main/install.sh | bash -s -- ~/Workspace/myapp
 ```
 
 安装过程：检查并启动 Docker → 生成沙箱配置 → 构建镜像 → 启动 → 自动验证（Go 版本、Claude Code、挂载双向读写）。空目录会附带 hello world 示例，装完即可 `go run .`。
