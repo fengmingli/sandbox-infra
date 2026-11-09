@@ -10,13 +10,13 @@
 #
 # 选项:
 #   --stack go|node|python    语言栈（默认 go）
-#   --with agent,agent,...    追加 AI agent，可选 claude|codex|gemini|opencode（默认 claude）
+#   --with agent,agent,...    追加 AI agent，可选 claude|codex|pi|opencode（默认 claude）
 #   --force                   覆盖已存在的沙箱配置文件
 #   -h, --help                显示本帮助
 #
 # 示例:
 #   ./install.sh ~/Workspace/myapp
-#   ./install.sh --stack node --with codex,gemini ~/Workspace/webapp
+#   ./install.sh --stack node --with codex,pi ~/Workspace/webapp
 #   curl -fsSL https://raw.githubusercontent.com/fengmingli/sandbox-infra/main/install.sh | bash -s -- ~/myapp
 
 set -euo pipefail
@@ -75,11 +75,11 @@ case "$STACK" in
 esac
 
 # ---------- AI agent 配置（npm 包名 / 凭据目录）----------
-AGENT_NPM_CLAUDE="@anthropic-ai/claude-code";  AGENT_MOUNT_CLAUDE=".claude"
-AGENT_NPM_CODEX="@openai/codex";               AGENT_MOUNT_CODEX=".codex"
-AGENT_NPM_GEMINI="@google/gemini-cli";         AGENT_MOUNT_GEMINI=".gemini"
-AGENT_NPM_OPENCODE="opencode-ai";              AGENT_MOUNT_OPENCODE=".local/share/opencode"
-KNOWN_AGENTS="claude codex gemini opencode"
+AGENT_NPM_CLAUDE="@anthropic-ai/claude-code";          AGENT_MOUNT_CLAUDE=".claude"
+AGENT_NPM_CODEX="@openai/codex";                       AGENT_MOUNT_CODEX=".codex"
+AGENT_NPM_PI="@earendil-works/pi-coding-agent";        AGENT_MOUNT_PI=".pi"
+AGENT_NPM_OPENCODE="opencode-ai";                      AGENT_MOUNT_OPENCODE=".local/share/opencode"
+KNOWN_AGENTS="claude codex pi opencode"
 
 selected=""
 seen=" "
@@ -87,20 +87,25 @@ IFS=',' read -ra _agents <<< "$AGENTS"
 for a in "${_agents[@]}"; do
   a="$(printf '%s' "$a" | tr -d ' ' | tr '[:upper:]' '[:lower:]')"
   [ -z "$a" ] && continue
-  case " $KNOWN_AGENTS " in *" $a "*) ;; *) die "未知 agent: ${a}（可选 claude|codex|gemini|opencode）" ;; esac
+  case " $KNOWN_AGENTS " in *" $a "*) ;; *) die "未知 agent: ${a}（可选 claude|codex|pi|opencode）" ;; esac
   case "$seen" in *" $a "*) ;; *) seen="${seen}${a} "; selected="${selected}${a} " ;; esac
 done
 selected="${selected% }"
 [ -n "$selected" ] || die "至少需要选择一个 agent"
 
-AGENT_PACKAGES=""
+AGENT_INSTALL_CMDS=""
 AGENT_MOUNT_LINES=""
 AGENT_CLIS=""
 for a in $selected; do
   up="$(printf '%s' "$a" | tr '[:lower:]' '[:upper:]')"
   pkg_name="AGENT_NPM_${up}"    # 先拼出变量名再间接引用：bash 3.2 兼容
   mnt_name="AGENT_MOUNT_${up}"
-  AGENT_PACKAGES="${AGENT_PACKAGES} ${!pkg_name}"
+  if [ "$a" = "pi" ]; then
+    # pi 官方要求 --ignore-scripts（不跑依赖生命周期脚本）
+    AGENT_INSTALL_CMDS="${AGENT_INSTALL_CMDS}npm install -g --ignore-scripts ${!pkg_name}; "
+  else
+    AGENT_INSTALL_CMDS="${AGENT_INSTALL_CMDS}npm install -g ${!pkg_name}; "
+  fi
   mp="${!mnt_name}"
   AGENT_MOUNT_LINES+=$'      - ${HOME}/'"${mp}:${C_HOME}/${mp}"$'\n'
   AGENT_CLIS="${AGENT_CLIS} ${a}"
@@ -178,7 +183,7 @@ RUN set -eux; \
       > /etc/apt/sources.list.d/github-cli.list; \
     apt-get update; \
     apt-get install -y --no-install-recommends gh; \
-    npm install -g ${AGENT_PACKAGES}; \
+    ${AGENT_INSTALL_CMDS}\
     apt-get clean; \
     rm -rf /var/lib/apt/lists/*
 
@@ -328,7 +333,11 @@ fi
 LOGIN_HINT=""
 for a in $selected; do
   [ "$a" = "claude" ] && continue
-  LOGIN_HINT="${LOGIN_HINT}  ${a}: 容器内执行 ${a} 后按提示登录（凭据已挂载持久化）"$'\n'
+  if [ "$a" = "pi" ]; then
+    LOGIN_HINT="${LOGIN_HINT}  pi: 容器内运行 pi 后执行 /login 连接账号（配置已挂载持久化）"$'\n'
+  else
+    LOGIN_HINT="${LOGIN_HINT}  ${a}: 容器内执行 ${a} 后按提示登录（凭据已挂载持久化）"$'\n'
+  fi
 done
 
 cat <<EOF

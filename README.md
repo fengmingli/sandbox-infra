@@ -18,7 +18,7 @@ macOS 上一键搭建**通用开发沙箱基础环境**：代码留在 Mac（bin
 
 - 一条命令安装：clone 后运行（或海外网络 curl 直装），无需任何其他工具
 - **三种语言栈可选**：`--stack go|node|python`（默认 go）
-- **多 AI agent 可组合**：`--with claude|codex|gemini|opencode`（默认 claude），凭据目录自动挂载持久化
+- **多 AI agent 可组合**：`--with claude|codex|pi|opencode`（默认 claude），凭据目录自动挂载持久化
 - 代码双向实时挂载，Mac 保持干净（语言环境、依赖、编译产物全在容器）
 - 包缓存走 docker 卷，重建容器不重新下载依赖
 - 附带 VS Code Dev Container 配置（Reopen in Container 一键进入）
@@ -45,7 +45,7 @@ curl -fsSL https://raw.githubusercontent.com/fengmingli/sandbox-infra/main/insta
 ### 选择栈与 agent
 
 ```bash
-bash install.sh --stack node --with codex,gemini ~/Workspace/webapp
+bash install.sh --stack node --with codex,pi ~/Workspace/webapp
 ```
 
 | 栈 | 基础镜像 | 缓存卷 |
@@ -58,7 +58,7 @@ bash install.sh --stack node --with codex,gemini ~/Workspace/webapp
 |---|---|---|
 | `claude`（默认） | `claude` | `~/.claude` `~/.claude.json` |
 | `codex` | `codex` | `~/.codex` |
-| `gemini` | `gemini` | `~/.gemini` |
+| `pi` | `pi` | `~/.pi`（配置在 `~/.pi/agent`） |
 | `opencode` | `opencode` | `~/.local/share/opencode` |
 
 非 claude 的 agent 首次在容器内运行时按提示登录一次，凭据落在挂载目录里，之后容器随便删重建。
@@ -118,7 +118,7 @@ docker compose run --rm --platform linux/amd64 dev go test ./...
 |---|---|---|---|
 | 项目目录 | `/workspace` | bind mount | 双向实时，代码唯一来源在 Mac |
 | docker 卷 | 包/编译缓存目录 | named volume | 快且持久 |
-| `~/.claude` `~/.codex` `~/.gemini` … | 同路径 | bind mount | agent 凭据持久化（按所选 agent） |
+| `~/.claude` `~/.codex` `~/.pi` `~/.local/share/opencode` … | 同路径 | bind mount | agent 凭据持久化（按所选 agent） |
 | `~/.gitconfig` | 同路径 | 只读 | 容器内提交用本机身份 |
 | `~/.ssh` | 同路径 | 只读 | 容器内可 git push（SSH 方式） |
 
